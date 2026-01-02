@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>تصويت جوائز الألعاب 2025</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Mobile Banner -->
+    <div class="mobile-banner mobile-only">
+      <p>مرحباً! يمكنك التصويت في جوائز الألعاب 2025</p>
+    </div>
+
+    <!-- Desktop Header -->
+    <div class="desktop-only header">
+      <h1><i class="fas fa-trophy"></i> تصويت جوائز الألعاب 2025</h1>
+      <div class="theme-tag">الإصدار النهائي</div>
+    </div>
+
+    <h2 class="desktop-only">صوّت لأفضل 5 ألعاب واختيار واحد لكل فئة أخرى</h2>
+    <h2 class="mobile-only">جوائز الألعاب 2025</h2>
+
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-steps">
+        <div class="step active">
+          <div class="step-number">1</div>
+          <span>المعلومات</span>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <span>التصويت</span>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <span>الإرسال</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Name Section -->
+    <div id="name-section" class="input-section">
+      <div class="input-card">
+        <div class="input-header">
+          <i class="fas fa-user"></i>
+          <h3>معلومات المشارك</h3>
+        </div>
+        <div class="input-group">
+          <label for="username">
+            <i class="fas fa-signature"></i>
+            أدخل اسمك:
+          </label>
+          <div class="input-with-icon">
+            <input type="text" id="username" placeholder="مثال: تركي" aria-label="أدخل اسمك">
+            <i class="fas fa-user-circle input-icon"></i>
+          </div>
+          <p class="input-hint">يمكنك استخدام اسم المستخدم الخاص بك في المنتدى</p>
+        </div>
+        <button onclick="checkNameAndProceed()" class="btn-primary">
+          <span class="desktop-only">متابعة إلى التصويت</span>
+          <span class="mobile-only">التالي</span>
+          <i class="fas fa-arrow-left"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Voting Section with Categories -->
+    <div id="voting-section" class="hidden">
+      <div class="voting-header-info">
+        <h3><i class="fas fa-vote-yea"></i> اختر أفضل 5 ألعاب في 2025 واختيار واحد لكل فئة</h3>
+        <p class="voting-subtitle">فئة "أفضل ألعاب 2025": تحتاج لاختيار 5 ألعاب مرتبة (المركز الأول = 5 نقاط)<br>الفئات الأخرى: اختيار واحد فقط لكل فئة</p>
+      </div>
+
+      <div id="categories-container" class="categories-container">
+        <!-- Categories will be loaded here -->
+        <div class="loading-state">
+          <div class="spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+          </div>
+          <p>جاري تحميل الفئات...</p>
+        </div>
+      </div>
+
+      <div id="duplicate-error" class="duplicate-error hidden">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="error-message"></span>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" onclick="goBackToName()" class="btn-secondary">
+          <i class="fas fa-arrow-right"></i>
+          العودة
+        </button>
+        <button type="button" onclick="submitAllVotes()" class="btn-submit">
+          <i class="fas fa-paper-plane"></i>
+          <span class="desktop-only">إرسال جميع الأصوات</span>
+          <span class="mobile-only">إرسال</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="theme-footer">
+      <div class="footer-content">
+        <p>
+          <i class="fas fa-award"></i>
+          جوائز الألعاب 2025
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Template for category card with 5 selections (Best Games category) -->
+  <template id="category-template-5">
+    <div class="category-card">
+      <div class="category-header">
+        <h3 class="category-title"></h3>
+        <span class="category-badge">5 اختيارات</span>
+      </div>
+      <div class="category-description"></div>
+      <div class="category-selections">
+        <!-- 5 selection fields will be added here -->
+      </div>
+    </div>
+  </template>
+
+  <!-- Template for category card with 1 selection (other categories) -->
+  <template id="category-template-1">
+    <div class="category-card single-selection">
+      <div class="category-header">
+        <h3 class="category-title"></h3>
+        <span class="category-badge">اختيار واحد</span>
+      </div>
+      <div class="category-description"></div>
+      <div class="category-selections">
+        <!-- 1 selection field will be added here -->
+      </div>
+    </div>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+</html>

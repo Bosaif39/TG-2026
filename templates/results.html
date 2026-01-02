@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>نتائج تصويت جوائز الألعاب 2025</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+</head>
+<body>
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Mobile Banner -->
+    <div class="mobile-banner mobile-only">
+      <p>هذه نتائج تصويتك لجوائز الألعاب 2025</p>
+    </div>
+
+    <!-- Desktop Header -->
+    <div class="desktop-only header">
+      <h1><i class="fas fa-trophy"></i> نتائج تصويت جوائز الألعاب 2025</h1>
+    </div>
+
+    <h2 class="desktop-only">تفاصيل تصويتك</h2>
+    <h2 class="mobile-only">تصويتك</h2>
+
+    <!-- User Info Section -->
+    <div class="user-header animate__animated animate__fadeIn">
+      <h2 id="username-display">جاري تحميل...</h2>
+      <div id="user-info">
+        <p id="user-id"></p>
+        <p id="total-voters"></p>
+      </div>
+    </div>
+
+    <!-- Point System Info -->
+    <div class="point-system-info animate__animated animate__fadeIn">
+      <div class="point-system-title">
+        <i class="fas fa-star"></i>
+        نظام النقاط
+      </div>
+      <div class="point-system-details">
+        <div class="point-item"><span class="rank-badge" style="background: #4CAF50; width: 20px; height: 20px; font-size: 0.8rem;">1</span> المركز الأول = 5 نقاط</div>
+        <div class="point-item"><span class="rank-badge" style="background: #2196F3; width: 20px; height: 20px; font-size: 0.8rem;">2</span> المركز الثاني = 4 نقاط</div>
+        <div class="point-item"><span class="rank-badge" style="background: #9C27B0; width: 20px; height: 20px; font-size: 0.8rem;">3</span> المركز الثالث = 3 نقاط</div>
+        <div class="point-item"><span class="rank-badge" style="background: #FF9800; width: 20px; height: 20px; font-size: 0.8rem;">4</span> المركز الرابع = نقطتان</div>
+        <div class="point-item"><span class="rank-badge" style="background: #F44336; width: 20px; height: 20px; font-size: 0.8rem;">5</span> المركز الخامس = نقطة</div>
+      </div>
+    </div>
+
+    <!-- Categories Sections -->
+    <div id="categories-container">
+      <div class="loading-state">
+        <div class="spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+        </div>
+        <p>جاري تحميل النتائج...</p>
+      </div>
+    </div>
+
+    <!-- Total Statistics -->
+    <div class="total-stats-card hidden" id="total-stats">
+      <div class="total-stats-title">
+        <i class="fas fa-chart-bar"></i>
+        إحصائيات عامة
+      </div>
+      <div class="total-stats-grid">
+        <div class="total-stat-item">
+          <div class="total-stat-value" id="total-categories">0</div>
+          <div class="total-stat-label">عدد الفئات</div>
+        </div>
+        <div class="total-stat-item">
+          <div class="total-stat-value" id="total-selections">0</div>
+          <div class="total-stat-label">إجمالي الاختيارات</div>
+        </div>
+        <div class="total-stat-item">
+          <div class="total-stat-value" id="total-points">0</div>
+          <div class="total-stat-label">مجموع النقاط</div>
+        </div>
+        <div class="total-stat-item">
+          <div class="total-stat-value" id="avg-points">0</div>
+          <div class="total-stat-label">متوسط النقاط/فئة</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="theme-footer">
+      <div class="footer-content">
+        <p>
+          <i class="fas fa-share-alt"></i>
+          <a href="/" style="color: white; text-decoration: underline;">العودة إلى صفحة التصويت</a>
+        </p>
+        <p style="font-size: 0.8rem; margin-top: 5px; color: rgba(255, 255, 255, 0.8);">
+          جوائز الألعاب 2025 - جميع الحقوق محفوظة
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="{{ url_for('static', filename='js/results.js') }}"></script>
+</body>
+</html>

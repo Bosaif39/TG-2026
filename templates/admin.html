@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>لوحة تحكم المدير - نظام التصويت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Add custom styles for wider admin panel */
+    body {
+      background-color: var(--background-dark);
+    }
+    
+    .admin-wide-container {
+      width: 100%;
+      max-width: 98vw;
+      margin: 0 auto;
+      padding: 15px;
+      background-color: var(--background-dark);
+    }
+    
+    .admin-table-container {
+      overflow-x: auto;
+      width: 100%;
+      max-width: 100%;
+      margin: 25px 0;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--surface-dark);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    
+    #admin-table {
+      width: 100%;
+      min-width: 1400px; /* Even wider for better viewing */
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+    
+    #admin-table th,
+    #admin-table td {
+      padding: 15px 18px;
+      border: 1px solid var(--border-color);
+      vertical-align: middle;
+      min-width: 140px;
+      text-align: center;
+    }
+    
+    #admin-table th {
+      background: linear-gradient(135deg, var(--primary-purple), var(--primary-dark));
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 3px solid var(--border-color);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    #admin-table tr:hover {
+      background-color: rgba(138, 43, 226, 0.08);
+    }
+    
+    #admin-table tr:nth-child(even) {
+      background-color: rgba(45, 36, 72, 0.5);
+    }
+    
+    #admin-table tr:nth-child(even):hover {
+      background-color: rgba(138, 43, 226, 0.12);
+    }
+    
+    /* Make selection field extra wide */
+    .selection-cell-wide {
+      min-width: 500px !important;
+      max-width: 600px;
+    }
+    
+    .selection-cell-wide input[type="text"] {
+      width: 100% !important;
+      min-width: 480px !important;
+      max-width: 580px !important;
+      padding: 12px 15px !important;
+      font-size: 16px !important;
+    }
+    
+    /* Wider inputs for admin panel */
+    .admin-input-extra-wide {
+      width: 100%;
+      max-width: 900px;
+      min-width: 500px;
+      padding: 14px 16px !important;
+      font-size: 16px !important;
+    }
+    
+    /* Category name column styling */
+    .category-name-cell {
+      min-width: 250px !important;
+      max-width: 350px;
+      font-weight: 700 !important;
+      color: var(--primary-purple) !important;
+      background-color: rgba(138, 43, 226, 0.1) !important;
+      font-size: 16px !important;
+      text-align: right !important;
+      direction: rtl !important;
+      border: 2px solid rgba(138, 43, 226, 0.2) !important;
+      border-radius: 6px;
+    }
+    
+    /* Voter name cell */
+    .voter-name-cell {
+      min-width: 180px !important;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    /* Points cell */
+    .points-cell {
+      min-width: 100px !important;
+      font-weight: 700;
+      color: var(--success);
+      font-size: 16px !important;
+      background-color: rgba(76, 175, 80, 0.1) !important;
+    }
+    
+    /* Rank cell */
+    .rank-cell {
+      min-width: 90px !important;
+      font-weight: 600;
+      color: var(--warning);
+    }
+    
+    /* Action buttons container */
+    .table-actions-container {
+      min-width: 220px !important;
+      white-space: nowrap;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .table-actions-container button {
+      min-width: 100px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .table-actions-container button:first-child {
+      background: linear-gradient(135deg, var(--primary-purple), var(--primary-dark));
+      color: white;
+    }
+    
+    .table-actions-container button:last-child {
+      background: linear-gradient(135deg, var(--danger), #D32F2F);
+      color: white;
+    }
+    
+    .table-actions-container button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* Full width for management sections */
+    .full-width-section {
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    /* Improved form styling */
+    .form-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    
+    .form-row input {
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    /* Clear search button styling */
+    .clear-search-btn {
+      background: linear-gradient(135deg, #666, #444) !important;
+      color: white !important;
+      border: none !important;
+    }
+    
+    .clear-search-btn:hover {
+      background: linear-gradient(135deg, #777, #555) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+    }
+    
+    /* Editable cells styling */
+    .editable-cell {
+      min-width: 200px !important;
+      background: white !important;
+      border: 2px solid #ddd !important;
+      border-radius: 6px !important;
+      padding: 12px 15px !important;
+      color: #000000 !important;
+      font-size: 16px !important;
+      text-align: right !important;
+      direction: rtl !important;
+      font-family: 'Cairo', sans-serif !important;
+      transition: all 0.3s ease !important;
+      outline: none !important;
+    }
+    
+    .editable-cell:focus {
+      border-color: var(--primary-purple) !important;
+      box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15) !important;
+      background-color: rgba(138, 43, 226, 0.05) !important;
+    }
+    
+    /* Pagination improvements */
+    #pagination {
+      display: flex !important;
+      justify-content: center !important;
+      gap: 12px !important;
+      margin: 30px 0 !important;
+      flex-wrap: wrap !important;
+    }
+    
+    #pagination button {
+      padding: 10px 18px !important;
+      border-radius: 8px !important;
+      background: var(--surface-light) !important;
+      border: 2px solid var(--border-color) !important;
+      color: var(--text-primary) !important;
+      font-family: 'Cairo', sans-serif !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+      min-width: 50px !important;
+      font-size: 15px !important;
+    }
+    
+    #pagination button:hover {
+      background: var(--primary-purple) !important;
+      color: white !important;
+      border-color: var(--primary-purple) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    #pagination button.active {
+      background: linear-gradient(135deg, var(--primary-purple), var(--primary-dark)) !important;
+      color: white !important;
+      border-color: var(--primary-purple) !important;
+      box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3) !important;
+    }
+    
+    /* Stats card improvements */
+    .stats-grid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+      gap: 20px !important;
+      margin-top: 20px !important;
+    }
+    
+    .stat-item {
+      background: var(--surface-light) !important;
+      padding: 25px !important;
+      border-radius: 12px !important;
+      text-align: center !important;
+      border: 2px solid var(--border-color) !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .stat-item:hover {
+      transform: translateY(-4px) !important;
+      box-shadow: 0 8px 16px rgba(138, 43, 226, 0.2) !important;
+      border-color: var(--primary-purple) !important;
+    }
+    
+    .stat-value {
+      font-size: 2.4rem !important;
+      font-weight: 800 !important;
+      color: var(--primary-purple) !important;
+      margin-bottom: 8px !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    }
+    
+    .stat-label {
+      font-size: 1rem !important;
+      color: var(--text-secondary) !important;
+      font-weight: 600 !important;
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 1200px) {
+      .admin-wide-container {
+        padding: 12px;
+      }
+      
+      #admin-table {
+        min-width: 1200px !important;
+      }
+      
+      .admin-input-extra-wide {
+        min-width: 400px !important;
+      }
+      
+      .selection-cell-wide input[type="text"] {
+        min-width: 400px !important;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .admin-wide-container {
+        padding: 8px;
+      }
+      
+      #admin-table {
+        min-width: 1000px !important;
+      }
+      
+      #admin-table th,
+      #admin-table td {
+        padding: 12px 14px !important;
+        font-size: 14px !important;
+      }
+      
+      .admin-input-extra-wide {
+        min-width: 300px !important;
+        font-size: 15px !important;
+        padding: 12px 14px !important;
+      }
+      
+      .form-row {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .table-actions-container {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .table-actions-container button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-wide-container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-user-shield"></i> لوحة تحكم المدير</h1>
+      <div class="theme-tag">نظام التصويت العربي - العرض الموسع</div>
+    </div>
+
+    <!-- 🔑 Admin Login -->
+    <div class="input-card">
+      <div class="input-header">
+        <i class="fas fa-lock"></i>
+        <h3>تسجيل الدخول</h3>
+      </div>
+      <div class="admin-input-container">
+        <label for="admin-password">
+          <i class="fas fa-key"></i>
+          كلمة مرور المدير:
+        </label>
+        <input type="password" id="admin-password" class="admin-input-large admin-input-extra-wide" placeholder="أدخل كلمة المرور الخاصة بالمدير">
+        <button onclick="checkPassword()" class="btn-primary">
+          <i class="fas fa-sign-in-alt"></i>
+          تسجيل الدخول
+        </button>
+      </div>
+    </div>
+
+    <!-- 📊 Statistics Panel -->
+    <div id="stats-panel" class="hidden">
+      <div class="stats-card">
+        <h3><i class="fas fa-chart-bar"></i> إحصائيات النظام</h3>
+        <div class="stats-grid" id="stats-grid">
+          <!-- Stats will be loaded here -->
+        </div>
+      </div>
+      
+      <div class="point-system">
+        <h4><i class="fas fa-star"></i> نظام النقاط</h4>
+        <div class="point-grid">
+          <div class="point-item">
+            <div class="point-rank">المركز الأول</div>
+            <div class="point-value">5 نقاط</div>
+          </div>
+          <div class="point-item">
+            <div class="point-rank">المركز الثاني</div>
+            <div class="point-value">4 نقاط</div>
+          </div>
+          <div class="point-item">
+            <div class="point-rank">المركز الثالث</div>
+            <div class="point-value">3 نقاط</div>
+          </div>
+          <div class="point-item">
+            <div class="point-rank">المركز الرابع</div>
+            <div class="point-value">2 نقطة</div>
+          </div>
+          <div class="point-item">
+            <div class="point-rank">المركز الخامس</div>
+            <div class="point-value">1 نقطة</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⬇️ Download Excel -->
+    <button id="download-btn" class="btn-submit hidden" onclick="downloadExcel()">
+      <i class="fas fa-file-excel"></i>
+      تحميل ملف Excel (جميع البيانات)
+    </button>
+
+    <!-- 📋 Main Panel -->
+    <div id="admin-panel" class="hidden">
+      <div class="voting-card full-width-section">
+        <div class="voting-header">
+          <div class="header-info">
+            <i class="fas fa-database"></i>
+            <h3>إدارة قاعدة البيانات</h3>
+            <div class="vote-counter" id="total-records">
+              <i class="fas fa-list"></i>
+              <span id="record-count">0</span> سجلات
+            </div>
+          </div>
+        </div>
+
+        <!-- 🔄 Table Selector -->
+        <div class="admin-input-container">
+          <label for="table-select">
+            <i class="fas fa-table"></i>
+            اختر الجدول:
+          </label>
+          <select id="table-select" class="admin-input-large admin-input-extra-wide" onchange="loadAdminTable(1)">
+            <option value="categories">📂 الفئات</option>
+            <option value="votes">🗳️ التصويتات</option>
+            <option value="games">🎮 الألعاب</option>
+            <option value="publishers">🏢 الناشرين</option>
+          </select>
+        </div>
+
+        <!-- 🔍 Search Bar -->
+        <div class="admin-input-container">
+          <label for="search-input">
+            <i class="fas fa-search"></i>
+            البحث في الجدول:
+          </label>
+          <div class="search-bar-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="search-input" class="admin-input-large admin-input-extra-wide" 
+                   placeholder="اكتب كلمة للبحث في جميع الحقول..." 
+                   style="flex: 1; min-width: 300px;">
+            <button id="search-button" onclick="searchAdmin()" class="btn-secondary">
+              <i class="fas fa-search"></i>
+              بحث
+            </button>
+            <button onclick="clearSearch()" class="btn-secondary clear-search-btn">
+              <i class="fas fa-times"></i>
+              مسح البحث
+            </button>
+          </div>
+        </div>
+
+        <!-- 📄 Data Table -->
+        <div class="admin-table-container">
+          <table id="admin-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- 🔢 Pagination -->
+        <div id="pagination"></div>
+      </div>
+
+      <!-- 🏷️ Category Management -->
+      <div class="category-management full-width-section">
+        <div class="category-management-title">
+          <i class="fas fa-tags"></i>
+          إدارة الفئات
+        </div>
+        
+        <div class="add-category-container">
+          <div class="add-category-title">
+            <i class="fas fa-plus-circle"></i>
+            إضافة فئة جديدة
+          </div>
+          <div class="add-category-form">
+            <div class="form-row">
+              <input type="text" id="category-name-ar" class="admin-input-large" 
+                     placeholder="اسم الفئة بالعربية">
+              <input type="text" id="category-name-en" class="admin-input-large" 
+                     placeholder="اسم الفئة بالإنجليزية">
+            </div>
+            <input type="text" id="category-description" class="admin-input-large admin-input-extra-wide" 
+                   placeholder="وصف الفئة">
+            <button onclick="addCategory()" class="btn-primary">
+              <i class="fas fa-plus"></i>
+              إضافة فئة جديدة
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🎮 Games Management -->
+      <div class="category-management full-width-section">
+        <div class="category-management-title">
+          <i class="fas fa-gamepad"></i>
+          إدارة الألعاب
+        </div>
+        
+        <div class="add-category-container">
+          <div class="add-category-title">
+            <i class="fas fa-plus-circle"></i>
+            إضافة لعبة جديدة
+          </div>
+          <div class="add-game-form">
+            <input type="text" id="game-name" class="admin-input-large admin-input-extra-wide" 
+                   placeholder="اسم اللعبة">
+            <button onclick="addGame()" class="btn-primary">
+              <i class="fas fa-plus"></i>
+              إضافة لعبة جديدة
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🏢 Publishers Management -->
+      <div class="category-management full-width-section">
+        <div class="category-management-title">
+          <i class="fas fa-building"></i>
+          إدارة الناشرين
+        </div>
+        
+        <div class="add-category-container">
+          <div class="add-category-title">
+            <i class="fas fa-plus-circle"></i>
+            إضافة ناشر جديد
+          </div>
+          <div class="add-game-form">
+            <input type="text" id="publisher-name" class="admin-input-large admin-input-extra-wide" 
+                   placeholder="اسم الناشر">
+            <button onclick="addPublisher()" class="btn-primary">
+              <i class="fas fa-plus"></i>
+              إضافة ناشر جديد
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="theme-footer">
+      <div class="footer-content">
+        <p>
+          <i class="fas fa-shield-alt"></i>
+          لوحة التحكم - نظام التصويت العربي
+        </p>
+        <p style="font-size: 0.9rem; margin-top: 8px; color: var(--text-muted);">
+          الإصدار 2.0 | خاص بالإدارة فقط | العرض الموسع
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script>
+    // Add this function to clear search
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      currentSearch = '';
+      loadAdminTable(1, true);
+      showToast("✓ تم مسح البحث", true);
+    }
+    
+    // Function to update record count
+    function updateRecordCount(count) {
+      const recordCountElement = document.getElementById('record-count');
+      if (recordCountElement) {
+        recordCountElement.textContent = count;
+      }
+    }
+    
+    // Handle Enter key in search
+    document.getElementById('search-input')?.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchAdmin();
+      }
+    });
+    
+    // Focus search input when panel is shown
+    document.addEventListener('DOMContentLoaded', function() {
+      // Focus password input initially
+      const passwordInput = document.getElementById('admin-password');
+      if (passwordInput) {
+        setTimeout(() => {
+          passwordInput.focus();
+        }, 100);
+      }
+      
+      // When admin panel becomes visible, focus search input
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const adminPanel = document.getElementById('admin-panel');
+            if (adminPanel && !adminPanel.classList.contains('hidden')) {
+              // Focus search input after a short delay
+              setTimeout(() => {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                  searchInput.focus();
+                }
+              }, 300);
+            }
+          }
+        });
+      });
+      
+      const adminPanel = document.getElementById('admin-panel');
+      if (adminPanel) {
+        observer.observe(adminPanel, { attributes: true });
+      }
+    });
+  </script>
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
