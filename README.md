@@ -59,7 +59,7 @@ Users vote across multiple categories with a special "Best 5 Games of 2025" rank
 
 ---
 
-## 🧠 How The New System Works
+## 🧠 How The System Works
 
 1. **User Registration**: Enter name → system checks if already voted
 2. **Category Navigation**: Progress through 9 voting categories
