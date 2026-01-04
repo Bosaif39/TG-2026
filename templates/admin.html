@@ -450,6 +450,7 @@
             <option value="categories">📂 الفئات</option>
             <option value="votes">🗳️ التصويتات</option>
             <option value="games">🎮 الألعاب</option>
+            <option value="games_2026">🎮 2026 ألعاب</option>
             <option value="publishers">🏢 الناشرين</option>
           </select>
         </div>
@@ -505,6 +506,8 @@
                      placeholder="اسم الفئة بالعربية">
               <input type="text" id="category-name-en" class="admin-input-large" 
                      placeholder="اسم الفئة بالإنجليزية">
+              <input type="number" id="category-display-order" class="admin-input-large" 
+                     placeholder="ترتيب العرض" min="0" value="0">
             </div>
             <input type="text" id="category-description" class="admin-input-large admin-input-extra-wide" 
                    placeholder="وصف الفئة">
@@ -534,6 +537,29 @@
             <button onclick="addGame()" class="btn-primary">
               <i class="fas fa-plus"></i>
               إضافة لعبة جديدة
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🎮 2026 Games Management -->
+      <div class="category-management full-width-section">
+        <div class="category-management-title">
+          <i class="fas fa-gamepad"></i>
+          إدارة ألعاب 2026
+        </div>
+        
+        <div class="add-category-container">
+          <div class="add-category-title">
+            <i class="fas fa-plus-circle"></i>
+            إضافة لعبة 2026 جديدة
+          </div>
+          <div class="add-game-form">
+            <input type="text" id="game-2026-name" class="admin-input-large admin-input-extra-wide" 
+                   placeholder="اسم لعبة 2026">
+            <button onclick="addGame2026()" class="btn-primary">
+              <i class="fas fa-plus"></i>
+              إضافة لعبة 2026 جديدة
             </button>
           </div>
         </div>
