@@ -226,8 +226,8 @@ function renderCategories(categories) {
     
     const description = categoryCard.querySelector('.category-description');
     description.textContent = category.description || 
-      (isBestGamesCategory ? 'اختر أفضل 5 ألعاب في 2025 مرتبة حسب الأفضلية' : 
-       isPublisherCategory ? 'اختر أفضل ناشر ألعاب في 2025' : 'اختر اختيار واحد في هذه الفئة');
+      (isBestGamesCategory ? 'اختر أفضل 5 ألعاب في 2025 مرتبة حسب الأفضلية (المراكز 1-3 مطلوبة، 4-5 اختيارية)' : 
+       isPublisherCategory ? 'اختر أفضل ناشر ألعاب في 2025' : 'اختر اختيار واحد في هذه الفئة (اختياري)');
     
     const selectionsContainer = categoryCard.querySelector('.category-selections');
     
@@ -248,7 +248,8 @@ function renderCategories(categories) {
         input.type = 'text';
         input.id = `category-${category.id}-rank-${i}`;
         input.className = 'selection-input';
-        input.placeholder = `اكتب اسم اللعبة...`;
+        // Different placeholder for optional positions
+        input.placeholder = i <= 3 ? `اكتب اسم اللعبة (مطلوب)...` : `اكتب اسم اللعبة (اختياري)...`;
         input.dataset.categoryId = category.id;
         input.dataset.rank = i;
         input.autocomplete = 'off';
@@ -299,7 +300,7 @@ function renderCategories(categories) {
       input.id = `category-${category.id}-single`;
       input.className = 'selection-input';
       // Different placeholder for publisher category
-      input.placeholder = isPublisherCategory ? `اكتب اسم الناشر...` : `اكتب اسم اللعبة/الاختيار...`;
+      input.placeholder = isPublisherCategory ? `اكتب اسم الناشر (اختياري)...` : `اكتب اسم اللعبة/الاختيار (اختياري)...`;
       input.dataset.categoryId = category.id;
       input.dataset.rank = 1; // Always rank 1 for single selections
       input.autocomplete = 'off';
@@ -340,20 +341,39 @@ function renderCategories(categories) {
   updateProgress();
 }
 
+// Validate selection input - MODIFIED FOR OPTIONAL FIELDS
 function validateSelectionInput(input) {
   const categoryId = input.dataset.categoryId;
   const rank = input.dataset.rank;
   const icon = document.getElementById(`icon-${categoryId}-${rank}`);
   const value = input.value.trim();
+  const card = input.closest('.category-card');
+  const isBestGamesCategory = card.dataset.isBestGames === 'true';
   
-  if (value.length === 0) {
-    icon.textContent = "";
-    icon.classList.remove('visible');
-    icon.removeAttribute('data-valid');
+  // Check if this is a mandatory field (top 3 in Best Games category)
+  const isMandatory = isBestGamesCategory && parseInt(rank) <= 3;
+  
+  // Clear previous state
+  icon.classList.remove('visible');
+  icon.removeAttribute('data-valid');
+  
+  // For empty optional fields
+  if (value.length === 0 && !isMandatory) {
+    icon.textContent = "○"; // Circle for optional empty
+    icon.classList.add('visible');
+    icon.setAttribute('data-valid', 'optional');
+    return true; // Empty optional fields are valid
+  }
+  
+  // For empty mandatory fields
+  if (value.length === 0 && isMandatory) {
+    icon.textContent = "✗";
+    icon.classList.add('visible');
+    icon.setAttribute('data-valid', 'false');
     return false;
   }
   
-  // Basic validation
+  // For filled fields
   const isValid = value.length > 1;
   
   if (isValid) {
@@ -368,32 +388,45 @@ function validateSelectionInput(input) {
   return isValid;
 }
 
+// Update progress calculation - MODIFIED FOR OPTIONAL FIELDS
 function updateProgress() {
-  let totalFields = 0;
-  let filledFields = 0;
+  let mandatoryFields = 0;
+  let filledMandatoryFields = 0;
   
-  // Count all input fields and filled ones
+  // Count all input fields
   const allInputs = document.querySelectorAll('.selection-input');
-  totalFields = allInputs.length;
   
   allInputs.forEach(input => {
-    if (input.value.trim().length > 0 && validateSelectionInput(input)) {
-      filledFields++;
+    const card = input.closest('.category-card');
+    const isBestGamesCategory = card.dataset.isBestGames === 'true';
+    const rank = input.dataset.rank;
+    
+    // Check if this is a mandatory field
+    // Top 3 in Best Games category are mandatory
+    // Single selections in other categories are optional
+    const isMandatory = isBestGamesCategory && parseInt(rank) <= 3;
+    
+    if (isMandatory) {
+      mandatoryFields++;
+      if (input.value.trim().length > 0 && validateSelectionInput(input)) {
+        filledMandatoryFields++;
+      }
     }
   });
   
   const progressFill = document.getElementById('progress-fill');
-  const progressPercentage = (filledFields / totalFields) * 100;
+  const progressPercentage = mandatoryFields > 0 ? 
+    (filledMandatoryFields / mandatoryFields) * 100 : 0;
   
   // Update progress bar
   progressFill.style.width = `${progressPercentage}%`;
   
   // Update step indicators
   const steps = document.querySelectorAll('.step');
-  if (filledFields === totalFields) {
+  if (filledMandatoryFields === mandatoryFields && mandatoryFields > 0) {
     steps[2].classList.add('active');
     steps[1].classList.add('active');
-  } else if (filledFields > 0) {
+  } else if (filledMandatoryFields > 0) {
     steps[1].classList.add('active');
     steps[2].classList.remove('active');
   } else {
@@ -472,35 +505,61 @@ function goBackToName() {
   });
 }
 
+// Submit all votes - MODIFIED FOR OPTIONAL FIELDS
 async function submitAllVotes() {
-  // Validate all inputs first
-  const allInputs = document.querySelectorAll('.selection-input');
-  let hasError = false;
-  
   // Reset duplicate error
   const duplicateError = document.getElementById('duplicate-error');
   duplicateError.classList.add('hidden');
   
-  // Check for empty fields
+  // Validate mandatory fields only
+  let hasError = false;
+  
+  // Find all mandatory fields (top 3 in Best Games category)
+  const allInputs = document.querySelectorAll('.selection-input');
   allInputs.forEach(input => {
-    if (!input.value.trim()) {
-      showNotification('يرجى ملء جميع الحقول', false);
-      input.focus();
-      hasError = true;
-      return;
-    }
+    const card = input.closest('.category-card');
+    const isBestGamesCategory = card.dataset.isBestGames === 'true';
+    const rank = input.dataset.rank;
     
-    if (!validateSelectionInput(input)) {
-      showNotification('يرجى إدخال اختيارات صحيحة', false);
-      input.focus();
-      hasError = true;
-      return;
+    // Check if this is a mandatory field
+    const isMandatory = isBestGamesCategory && parseInt(rank) <= 3;
+    
+    if (isMandatory) {
+      if (!input.value.trim()) {
+        showNotification('يرجى ملء المركزين 1، 2، 3 في فئة أفضل ألعاب 2025', false);
+        input.focus();
+        hasError = true;
+        return;
+      }
+      
+      if (!validateSelectionInput(input)) {
+        showNotification('يرجى إدخال اختيارات صحيحة في المراكز الثلاثة الأولى', false);
+        input.focus();
+        hasError = true;
+        return;
+      }
     }
   });
   
   if (hasError) return;
   
-  // Check for duplicates within Best Games category (needs 5 unique games)
+  // Validate all filled fields (including optional ones)
+  allInputs.forEach(input => {
+    const value = input.value.trim();
+    if (value.length > 0) {
+      // Only validate if field is not empty
+      if (!validateSelectionInput(input)) {
+        showNotification('يرجى إدخال اختيارات صحيحة', false);
+        input.focus();
+        hasError = true;
+        return;
+      }
+    }
+  });
+  
+  if (hasError) return;
+  
+  // Check for duplicates within Best Games category (only among filled positions)
   const votesByCategory = {};
   const duplicateErrors = [];
   
@@ -508,30 +567,37 @@ async function submitAllVotes() {
     const categoryId = category.id;
     const isBestGamesCategory = category.name_ar.includes("أفضل ألعاب 2025");
     const selections = [];
+    const filledSelections = [];
     const seenSelections = new Set();
     const duplicateInCategory = [];
     
     if (isBestGamesCategory) {
-      // Best Games category: Get 5 ranked selections
+      // Best Games category: Get up to 5 selections
       for (let i = 1; i <= 5; i++) {
         const input = document.getElementById(`category-${categoryId}-rank-${i}`);
         const value = input.value.trim();
-        selections.push(value);
+        // For empty optional positions (4 and 5), send empty string
+        selections.push(value || "");
         
-        if (seenSelections.has(value.toLowerCase())) {
-          duplicateInCategory.push({ rank: i, value });
+        // Only check duplicates among filled positions
+        if (value) {
+          filledSelections.push(value);
+          if (seenSelections.has(value.toLowerCase())) {
+            duplicateInCategory.push({ rank: i, value });
+          }
+          seenSelections.add(value.toLowerCase());
         }
-        seenSelections.add(value.toLowerCase());
       }
       
       if (duplicateInCategory.length > 0) {
         duplicateErrors.push(`فئة "${category.name_ar}": لا يمكن تكرار اللعبة نفسها في أكثر من مركز`);
       }
     } else {
-      // Other categories: Get single selection
+      // Other categories: Get single selection (if filled)
       const input = document.getElementById(`category-${categoryId}-single`);
       const value = input.value.trim();
-      selections.push(value); // Single selection as array with one element
+      // For optional categories, send empty string if not filled
+      selections.push(value || "");
     }
     
     if (duplicateInCategory.length > 0) {
@@ -577,11 +643,8 @@ async function submitAllVotes() {
         window.location.href = `/results?username=${encodeURIComponent(currentUsername)}`;
       }, 2000);
     } else if (data.status === 'error' && data.message.includes('already voted')) {
-      // Handle case where user somehow got through duplicate check
       const confirmOverride = confirm('لقد قمت بالتصويت مسبقاً. هل تريد استبدال تصويتك السابق؟');
       if (confirmOverride) {
-        // Here you might want to implement an override endpoint
-        // For now, just show an error
         showNotification('يرجى التواصل مع المشرف لتعديل تصويتك', false);
       }
     } else {
